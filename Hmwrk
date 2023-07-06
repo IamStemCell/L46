@@ -1,0 +1,58 @@
+import logging
+from telegram import Update, ParseMode
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+
+TOKEN = '6326535990:AAGVWHlQj6QB-hHmHfZ7P6Xkttm_'
+
+
+def start(update: Update, context: CallbackContext):
+    """Send a welcome message when the command /start is issued."""
+    update.message.reply_text('Hello! This is your Telegram bot, written by SPoly.')
+
+def echo(update: Update, context: CallbackContext):
+    """Echo the user's message."""
+    update.message.reply_text(update.message.text)
+
+def send_note(update: Update, context: CallbackContext):
+    """Send a note to a specific Telegram channel."""
+    note = update.message.text
+    channel_id = 'your_channel_id'
+    context.bot.send_message(chat_id=channel_id, text=note)
+
+def error(update: Update, context: CallbackContext):
+    """Log errors caused by updates."""
+    logging.error(f'Update {update} caused error {context.error}')
+
+def main():
+    """Start the bot."""
+    # Create the Updater and pass your bot's token
+    updater = Updater(TOKEN)
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+    # Set up command handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    
+    # Set up message handler
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    
+    # Set up custom handler for sending notes
+    dispatcher.add_handler(MessageHandler(Filters.command & Filters.regex(r'^/note'), send_note))
+
+    # Log all errors
+    dispatcher.add_error_handler(error)
+
+    # Start the bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
